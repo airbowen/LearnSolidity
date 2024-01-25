@@ -38,6 +38,10 @@ contract Aduction{
         require(msg.sender != owner);
         _;
     }
+    modifier onlyOwner(){
+        require (msg.sender == owner);
+        _;
+    }
     function min(uint a,uint b) pure internal  returns(uint){
         if(a <= b){
             return a;
@@ -45,7 +49,11 @@ contract Aduction{
             return b;
         }
     }
-    function placeBid() public payable {
+    function cancelAuction() public onlyOwner{
+        auctionState = State.Canceled;
+    }
+    
+    function placeBid() public payable notOwner beforeEnd afterStart{
         require(auctionState == State.Running);
         require( msg.value >= 100);
 
