@@ -68,4 +68,33 @@ contract Aduction{
            higherBindder = payable (msg.sender);
         }
     }
+
+    function finalizeAuction() public {
+        require(auctionState == State.Canceled || block.number > endBlock, "Auction not canceled or not ended yet");
+        require(msg.sender == owner || bids[msg.sender] > 0, "You are not the owner or haven't placed any bids");
+
+        address payable recipient;
+        uint value;
+
+        if (auctionState == State.Canceled) {
+            // If the auction is canceled, the recipient is the sender (refund)
+            recipient = payable(msg.sender);
+            value = bids[msg.sender];
+        } else {
+            if (msg.sender == owner) {
+                // If the sender is the owner, they get the highest bid
+                recipient = owner;
+                value = highestBindingBid;
+            } else {
+                if (msg.sender == higherBindder){
+                    recipient = higherBindder;
+                    value = bids[higherBindder] - highestBindingBid;
+                }else{
+                    recipient = payable (msg.sender);
+                    value = bids[msg.sender];
+                }
+            }
+        }
+        recipient.transfer(value);
+    }
 }
