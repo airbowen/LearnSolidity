@@ -5,6 +5,7 @@ contract Aduction{
     address payable  public owner;
     uint public startBlock;
     uint public endBlock;
+    uint public   highestBindingBid;
 
     string public ipfsHash;
     enum State {Started,Running,Ended,Canceled}
@@ -23,5 +24,40 @@ contract Aduction{
         endBlock = startBlock + 40320;
         ipfsHash = "";
         bidIncrement = 100;
+    }
+
+    modifier notOwner(){
+        require(msg.sender != owner);
+        _;
+    }
+    modifier afterStart(){
+        require(msg.sender != owner);
+        _;
+    }
+    modifier beforeEnd(){
+        require(msg.sender != owner);
+        _;
+    }
+    function min(uint a,uint b) pure internal  returns(uint){
+        if(a <= b){
+            return a;
+        }else{
+            return b;
+        }
+    }
+    function placeBid() public payable {
+        require(auctionState == State.Running);
+        require( msg.value >= 100);
+
+        uint currentBid = bids[msg.sender] + msg.value;
+        require(currentBid >higherBindingBid);
+
+        bids[msg.sender] = currentBid;
+        if (currentBid <= bids[higherBindder]){
+            highestBindingBid = min(currentBid+bidIncrement,bids[higherBindder]);
+        }else{
+           highestBindingBid = min(currentBid,bids[ higherBindder]+bidIncrement);
+           higherBindder = payable (msg.sender);
+        }
     }
 }
